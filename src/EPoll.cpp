@@ -5,18 +5,19 @@
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include "EPoll.h"
+#include "log.h"
 
 EPoll::EPoll(const int maxEvents, std::function<void(int)> readAvailableCallback) : maxEvents_(maxEvents) {
     readAvailableCallback_ = std::move(readAvailableCallback);
     epollFd_ = epoll_create1(0);
     if (epollFd_ <= 0) {
-        printf("epoll_create error: %s\n", strerror(errno));
+        LOGE("epoll_create error: %s", strerror(errno));
         return;
     }
 
     exitEventFd_ = eventfd(0, 0);
     if (exitEventFd_ <= 0) {
-        printf("create eventfd error: %s\n", strerror(errno));
+        LOGE("create eventfd error: %s", strerror(errno));
         return;
     }
     insertFd(exitEventFd_);
@@ -26,15 +27,15 @@ EPoll::EPoll(const int maxEvents, std::function<void(int)> readAvailableCallback
 }
 
 EPoll::~EPoll() {
-    printf("~EPoll start\n");
+    LOGD("~EPoll start");
     interrupted_.store(true);
     auto ret = eventfd_write(exitEventFd_, 1);
     if (ret != 0) {
-        printf("eventfd_write error : ret = %d, error: %s\n", ret, strerror(errno));
+        LOGE("eventfd_write error : ret = %d, error: %s", ret, strerror(errno));
     }
     thread_.join();
     close(epollFd_);
-    printf("~EPoll end\n");
+    LOGD("~EPoll end");
 }
 
 bool EPoll::insertFd(int fd) const {
@@ -42,7 +43,7 @@ bool EPoll::insertFd(int fd) const {
     event.events = EPOLLIN;
     event.data.fd = fd;
     if (epoll_ctl(epollFd_, EPOLL_CTL_ADD, fd, &event) < 0) {
-        printf("epoll_ctl add error: %s\n", strerror(errno));
+        LOGE("epoll_ctl add error: %s", strerror(errno));
         return false;
     }
 
@@ -52,7 +53,7 @@ bool EPoll::insertFd(int fd) const {
 bool EPoll::removeFd(int fd) const {
     struct epoll_event event{};
     if (epoll_ctl(epollFd_, EPOLL_CTL_DEL, fd, &event) < 0) {
-        printf("epoll_ctl del error: %s\n", strerror(errno));
+        LOGE("epoll_ctl del error: %s", strerror(errno));
         return false;
     }
     return true;
@@ -62,15 +63,15 @@ void EPoll::eventLoop() {
     while (!interrupted_.load()) {
         struct epoll_event events[maxEvents_];
         int count = epoll_wait(epollFd_, events, maxEvents_, -1);
-        printf("epoll wait count = %d\n", count);
+        LOGD("epoll wait fd count = %d", count);
         if (count == -1) {
-            printf("epoll_wait error: %s\n", strerror(errno));
+            LOGE("epoll_wait error: %s", strerror(errno));
             continue;
         }
 
         for (int i = 0; i < count; ++i) {
             if (events[i].data.fd == exitEventFd_) {
-                printf("exit event\n");
+                LOGD("exit event");
                 continue;
             }
             readAvailableCallback_(events[i].data.fd);

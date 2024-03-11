@@ -5,6 +5,7 @@
 #include <csignal>
 #include <cstring>
 #include "TCPServer.h"
+#include "log.h"
 
 class TCPEchoServer : public TCPServer {
 public:
@@ -13,16 +14,16 @@ public:
     }
 
     ~TCPEchoServer() override {
-        printf("~TCPEchoServer\n");
+        LOGD("~TCPEchoServer");
     }
 
 protected:
     void onConnect(const std::shared_ptr<TCPConnection> &connection) override {
-        printf("onConnect peer(%s:%d)\n", connection->getPeerIP().c_str(), connection->getPort());
+        LOGD("onConnect peer(%s:%d)", connection->getPeerIP().c_str(), connection->getPort());
     }
 
     void onDisconnect(const std::shared_ptr<TCPConnection> &connection) override {
-        printf("onDisconnect peer(%s:%d)\n", connection->getPeerIP().c_str(), connection->getPort());
+        LOGD("onDisconnect peer(%s:%d)", connection->getPeerIP().c_str(), connection->getPort());
     }
 
     ssize_t onReadAvailable(const std::shared_ptr<TCPConnection> &connection) override {
@@ -37,10 +38,10 @@ protected:
 };
 
 int main() {
-    printf("tcp echo server start\n");
+    LOGD("tcp echo server start");
     TCPEchoServer server(10086);
     server.start();
-    sleep(5);
+    sleep(500);
     server.stop();
     return 0;
 }

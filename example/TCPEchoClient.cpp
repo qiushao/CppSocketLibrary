@@ -5,11 +5,12 @@
 #include <cstring>
 #include <iostream>
 #include "TCPConnector.h"
+#include "log.h"
 
 int main() {
     auto connection = TCPConnector::connect("127.0.0.1", 10086);
     if (nullptr == connection) {
-        printf("connect server failed\n");
+        LOGE("connect server failed");
         return -1;
     }
 
@@ -24,7 +25,7 @@ int main() {
         memset(buffer, 0, 256);
         connection->writeData(line.c_str(), line.length());
         connection->readData(reinterpret_cast<uint8_t *>(buffer), 256);
-        printf("receive from server: %s\n", buffer);
+        LOGD("server say: %s", buffer);
     }
 
     return 0;

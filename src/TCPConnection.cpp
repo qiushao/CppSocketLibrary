@@ -8,6 +8,7 @@
 #include <thread>
 #include <cstring>
 #include <utility>
+#include "log.h"
 
 TCPConnection::TCPConnection(int socket, std::string peerIp, uint16_t port)
                             : socket_(socket), peerIp_(std::move(peerIp)), port_(port) {
@@ -15,7 +16,7 @@ TCPConnection::TCPConnection(int socket, std::string peerIp, uint16_t port)
 }
 
 TCPConnection::~TCPConnection() {
-    printf("close connection\n");
+    LOGD("close connection");
     shutdown(socket_, SHUT_RDWR);
     close(socket_);
 }
@@ -38,14 +39,14 @@ ssize_t TCPConnection::readDataWaitAll(uint8_t *data, size_t len) const {
             nLeft -= nRead;
             ptr += nRead;
         } else if (nRead == 0) {
-            printf("read = 0, peer disconnect\n");
+            LOGE("read = 0, peer disconnect");
             return nRead;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds (5));
                 continue;
             } else {
-                printf("errno = %d:%s\n", errno, strerror(errno));
+                LOGE("errno = %d:%s", errno, strerror(errno));
                 return nRead;
             }
         }
@@ -63,14 +64,14 @@ ssize_t TCPConnection::writeDataWaitAll(const void *data, size_t len) const {
             nLeft -= nWritten;
             ptr += nWritten;
         } else if (nWritten == 0) {
-            printf("write = 0, disconnect\n");
+            LOGE("write = 0, disconnect");
             return nWritten;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds (5));
                 continue;
             } else{
-                printf("errno = %d:%s\n", errno, strerror(errno));
+                LOGE("errno = %d:%s", errno, strerror(errno));
                 return nWritten;
             }
         }
@@ -85,14 +86,14 @@ ssize_t TCPConnection::writeData(const void *data, size_t len) const {
         if (nWritten > 0) {
             return nWritten;
         } else if (nWritten == 0) {
-            printf("write = 0, disconnect\n");
+            LOGE("write = 0, disconnect");
             return nWritten;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds (5));
                 continue;
             } else{
-                printf("errno = %d:%s\n", errno, strerror(errno));
+                LOGE("errno = %d:%s", errno, strerror(errno));
                 return nWritten;
             }
         }
@@ -106,14 +107,14 @@ ssize_t TCPConnection::readData(uint8_t *data, size_t len) const {
         if (nRead > 0) {
             return nRead;
         } else if (nRead == 0) {
-            printf("read = 0, peer disconnect\n");
+            LOGE("read = 0, peer disconnect");
             return nRead;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds (5));
                 continue;
             } else {
-                printf("errno = %d:%s\n", errno, strerror(errno));
+                LOGE("errno = %d:%s", errno, strerror(errno));
                 return nRead;
             }
         }
