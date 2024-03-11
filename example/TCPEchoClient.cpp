@@ -8,12 +8,15 @@
 #include "log.h"
 
 int main() {
-    auto connection = TCPConnector::connect("127.0.0.1", 10086);
+    const char *serverIP = "127.0.0.1";
+    uint16_t serverPort = 10086;
+    auto connection = TCPConnector::connect(serverIP, serverPort);
     if (nullptr == connection) {
-        LOGE("connect server failed");
+        LOGE("connect to server(%s:%d) failed", serverIP, serverPort);
         return -1;
     }
 
+    LOGD("connect to server(%s:%d) success", serverIP, serverPort);
     char buffer[256];
     std::string line;
     while (true) {

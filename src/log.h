@@ -6,6 +6,7 @@
 #define CPPSOCKETLIBRARY_LOG_H
 
 #include <cstdint>
+#include <cstdio>
 
 #ifndef LOGD
 #define LOGD(...) myLog(stdout, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);

@@ -39,7 +39,7 @@ ssize_t TCPConnection::readDataWaitAll(uint8_t *data, size_t len) const {
             nLeft -= nRead;
             ptr += nRead;
         } else if (nRead == 0) {
-            LOGE("read = 0, peer disconnect");
+            LOGD("read = 0, peer disconnect");
             return nRead;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
@@ -64,7 +64,7 @@ ssize_t TCPConnection::writeDataWaitAll(const void *data, size_t len) const {
             nLeft -= nWritten;
             ptr += nWritten;
         } else if (nWritten == 0) {
-            LOGE("write = 0, disconnect");
+            LOGD("write = 0, peer disconnect");
             return nWritten;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
@@ -86,7 +86,7 @@ ssize_t TCPConnection::writeData(const void *data, size_t len) const {
         if (nWritten > 0) {
             return nWritten;
         } else if (nWritten == 0) {
-            LOGE("write = 0, disconnect");
+            LOGD("write = 0, peer disconnect");
             return nWritten;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
@@ -107,7 +107,7 @@ ssize_t TCPConnection::readData(uint8_t *data, size_t len) const {
         if (nRead > 0) {
             return nRead;
         } else if (nRead == 0) {
-            LOGE("read = 0, peer disconnect");
+            LOGD("read = 0, peer disconnect");
             return nRead;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
