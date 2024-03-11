@@ -1,0 +1,5 @@
+add_executable(TCPEchoServer TCPEchoServer.cpp)
+target_link_libraries(TCPEchoServer CppSocket)
+
+add_executable(TCPEchoClient TCPEchoClient.cpp)
+target_link_libraries(TCPEchoClient CppSocket)
