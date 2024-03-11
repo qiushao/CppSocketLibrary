@@ -27,15 +27,16 @@ EPoll::EPoll(const int maxEvents, std::function<void(int)> readAvailableCallback
 }
 
 EPoll::~EPoll() {
-    LOGD("~EPoll start");
+    //LOGD("~EPoll start");
     interrupted_.store(true);
     auto ret = eventfd_write(exitEventFd_, 1);
     if (ret != 0) {
         LOGE("eventfd_write error : ret = %d, error: %s", ret, strerror(errno));
     }
     thread_.join();
+    close(exitEventFd_);
     close(epollFd_);
-    LOGD("~EPoll end");
+    //LOGD("~EPoll end");
 }
 
 bool EPoll::insertFd(int fd) const {
@@ -63,7 +64,7 @@ void EPoll::eventLoop() {
     while (!interrupted_.load()) {
         struct epoll_event events[maxEvents_];
         int count = epoll_wait(epollFd_, events, maxEvents_, -1);
-        LOGD("epoll wait fd count = %d", count);
+        // LOGD("epoll wait fd count = %d", count);
         if (count == -1) {
             LOGE("epoll_wait error: %s", strerror(errno));
             continue;
