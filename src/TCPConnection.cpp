@@ -49,7 +49,11 @@ bool TCPConnection::setNonblock() const {
     return true;
 }
 
-ssize_t TCPConnection::readDataWaitAll(uint8_t *data, size_t len) const {
+ssize_t TCPConnection::readDataWaitAll(uint8_t *data, size_t len) {
+    if (broken_) {
+        LOGE("connection is broken, can't read anymore");
+        return 0;
+    }
     ssize_t nRead;
     size_t nLeft = len;
     uint8_t *ptr = data;
@@ -59,12 +63,20 @@ ssize_t TCPConnection::readDataWaitAll(uint8_t *data, size_t len) const {
             nLeft -= nRead;
             ptr += nRead;
         } else if (nRead == 0) {
+            // normal close
             LOGD("read = 0, peer disconnect");
-            return nRead;
+            broken_ = true;
+            return 0;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
+                LOGD("errno = %d:%s, try again", errno, strerror(errno));
+                // wait all 则需要继续等待接收数据
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 continue;
+            } else if (errno == EPIPE || errno == ECONNRESET) {
+                LOGE("errno = %d:%s, connection is broken or close", errno, strerror(errno));
+                broken_ = true;
+                return 0;
             } else {
                 LOGE("unknown errno = %d:%s", errno, strerror(errno));
                 return nRead;
@@ -74,7 +86,11 @@ ssize_t TCPConnection::readDataWaitAll(uint8_t *data, size_t len) const {
     return len - nLeft;
 }
 
-ssize_t TCPConnection::writeDataWaitAll(const void *data, size_t len) const {
+ssize_t TCPConnection::writeDataWaitAll(const void *data, size_t len) {
+    if (broken_) {
+        LOGE("connection is broken, can't write anymore");
+        return 0;
+    }
     ssize_t nWritten;
     size_t nLeft = len;
     const char *ptr = static_cast<const char *>(data);
@@ -85,11 +101,18 @@ ssize_t TCPConnection::writeDataWaitAll(const void *data, size_t len) const {
             ptr += nWritten;
         } else if (nWritten == 0) {
             LOGD("write = 0, peer disconnect");
-            return nWritten;
+            broken_ = true;
+            return 0;
         } else {
             if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
+                LOGD("errno = %d:%s, try again", errno, strerror(errno));
+                // wait all 则需要继续尝试发送
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 continue;
+            } else if (errno == EPIPE || errno == ECONNRESET) {
+                LOGE("errno = %d:%s, connection is broken or close", errno, strerror(errno));
+                broken_ = true;
+                return 0;
             } else {
                 LOGE("unknown errno = %d:%s", errno, strerror(errno));
                 return nWritten;
@@ -99,44 +122,58 @@ ssize_t TCPConnection::writeDataWaitAll(const void *data, size_t len) const {
     return nWritten;
 }
 
-ssize_t TCPConnection::writeData(const void *data, size_t len) const {
+ssize_t TCPConnection::writeData(const void *data, size_t len) {
+    if (broken_) {
+        LOGE("connection is broken, can't write anymore");
+        return 0;
+    }
     ssize_t nWritten;
-    while (true) {
-        nWritten = send(socket_, data, len, 0);
-        if (nWritten > 0) {
+    nWritten = send(socket_, data, len, 0);
+    if (nWritten > 0) {
+        return nWritten;
+    } else if (nWritten == 0) {
+        LOGD("write = 0, peer disconnect");
+        broken_ = true;
+        return 0;
+    } else {
+        if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
+            LOGD("errno = %d:%s, should try again", errno, strerror(errno));
             return nWritten;
-        } else if (nWritten == 0) {
-            LOGD("write = 0, peer disconnect");
-            return nWritten;
+        } else if (errno == EPIPE || errno == ECONNRESET) {
+            LOGE("errno = %d:%s, connection is broken or close", errno, strerror(errno));
+            broken_ = true;
+            return 0;
         } else {
-            if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
-                continue;
-            } else {
-                LOGE("unknown errno = %d:%s", errno, strerror(errno));
-                return nWritten;
-            }
+            LOGE("unknown errno = %d:%s", errno, strerror(errno));
+            return nWritten;
         }
     }
 }
 
-ssize_t TCPConnection::readData(uint8_t *data, size_t len) const {
+ssize_t TCPConnection::readData(uint8_t *data, size_t len) {
+    if (broken_) {
+        LOGE("connection is broken, can't read anymore");
+        return 0;
+    }
     ssize_t nRead;
-    while (true) {
-        nRead = recv(socket_, data, len, 0);
-        if (nRead > 0) {
+    nRead = recv(socket_, data, len, 0);
+    if (nRead > 0) {
+        return nRead;
+    } else if (nRead == 0) {
+        LOGD("read = 0, peer disconnect");
+        broken_ = true;
+        return 0;
+    } else {
+        if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
+            LOGD("errno = %d:%s, should try again", errno, strerror(errno));
             return nRead;
-        } else if (nRead == 0) {
-            LOGD("read = 0, peer disconnect");
-            return nRead;
+        } else if (errno == EPIPE || errno == ECONNRESET) {
+            LOGE("errno = %d:%s, connection is broken or close", errno, strerror(errno));
+            broken_ = true;
+            return 0;
         } else {
-            if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(5));
-                continue;
-            } else {
-                LOGE("unknown errno = %d:%s", errno, strerror(errno));
-                return nRead;
-            }
+            LOGE("unknown errno = %d:%s", errno, strerror(errno));
+            return nRead;
         }
     }
 }

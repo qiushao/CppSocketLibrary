@@ -19,15 +19,16 @@ public:
     int getSocket() const;
     bool setNonblock() const;
 
-    ssize_t readDataWaitAll(uint8_t *data, size_t len) const;
-    ssize_t writeDataWaitAll(const void *data, size_t len) const;
-    ssize_t readData(uint8_t *data, size_t len) const;
-    ssize_t writeData(const void *data, size_t len) const;
+    ssize_t readDataWaitAll(uint8_t *data, size_t len);
+    ssize_t writeDataWaitAll(const void *data, size_t len);
+    ssize_t readData(uint8_t *data, size_t len);
+    ssize_t writeData(const void *data, size_t len);
 
 private:
     int socket_;
     std::string peerIp_;
     uint16_t port_;
+    bool broken_ = false;
 };
 
 

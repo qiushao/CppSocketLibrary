@@ -10,18 +10,13 @@
 
 static std::shared_ptr<TCPConnection> g_connection;
 static EPoll *g_epoll;
-static bool stop = false;
 static void onReceive(int fd) {
-    if (stop) {
-        return;
-    }
     char buffer[256];
     memset(buffer, 0, 256);
     auto nRead = g_connection->readData(reinterpret_cast<uint8_t *>(buffer), 256);
     if (nRead == 0) {
         LOGE("nRead == 0, disconnect");
         g_epoll->removeFd(g_connection->getSocket());
-        stop = true;
         return;
     }
     LOGD("server say: %s", buffer);
@@ -42,7 +37,7 @@ int main() {
     g_epoll->insertFd(g_connection->getSocket());
 
     std::string line;
-    while (!stop) {
+    while (true) {
         std::getline(std::cin, line);
         if (line == "exit") {
             break;
