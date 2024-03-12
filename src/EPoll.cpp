@@ -41,7 +41,8 @@ EPoll::~EPoll() {
 
 bool EPoll::insertFd(int fd) const {
     struct epoll_event event{};
-    event.events = EPOLLIN;
+    //event.events = EPOLLIN | EPOLLET; // 边缘触发，需要业务层循环读数据，直到返回 EAGAIN 或 EWOULDBLOCK。这表示当前没有更多数据可读
+    event.events = EPOLLIN; // 默认水平触发，只要还有数据，就会继续有事件
     event.data.fd = fd;
     if (epoll_ctl(epollFd_, EPOLL_CTL_ADD, fd, &event) < 0) {
         LOGE("epoll_ctl add error: %s", strerror(errno));
@@ -72,8 +73,8 @@ void EPoll::eventLoop() {
 
         for (int i = 0; i < count; ++i) {
             if (events[i].data.fd == exitEventFd_) {
-                LOGD("exit event");
-                continue;
+                LOGD("exit event loop");
+                return;
             }
             readAvailableCallback_(events[i].data.fd);
         }

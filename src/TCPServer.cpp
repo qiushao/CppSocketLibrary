@@ -72,7 +72,7 @@ void TCPServer::onReadableEvent(int fd) {
                 onDisconnect(connection);
                 epoll_->removeFd(connection->getSocket());
                 clients_.erase(it);
-                LOGD("clients size = %zu", clients_.size());
+                //LOGD("clients size = %zu", clients_.size());
             }
 
         } else {
@@ -91,8 +91,9 @@ void TCPServer::onAccept() {
     }
 
     auto connection = std::make_shared<TCPConnection>(clientSocket, inet_ntoa(clientAddr.sin_addr), listenPort_);
+    connection->setNonblock();
     clients_[clientSocket] = connection;
     epoll_->insertFd(clientSocket);
     onConnect(connection);
-    LOGD("clients size = %zu", clients_.size());
+    //LOGD("clients size = %zu", clients_.size());
 }

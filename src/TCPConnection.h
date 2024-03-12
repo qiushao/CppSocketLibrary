@@ -17,6 +17,7 @@ public:
     std::string getPeerIP();
     uint16_t getPort() const;
     int getSocket() const;
+    bool setNonblock() const;
 
     ssize_t readDataWaitAll(uint8_t *data, size_t len) const;
     ssize_t writeDataWaitAll(const void *data, size_t len) const;

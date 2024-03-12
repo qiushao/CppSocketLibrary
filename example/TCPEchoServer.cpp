@@ -41,7 +41,7 @@ int main() {
     LOGD("tcp echo server start");
     TCPEchoServer server(10086);
     server.start();
-    sleep(500);
+    sleep(20);
     server.stop();
     return 0;
 }
