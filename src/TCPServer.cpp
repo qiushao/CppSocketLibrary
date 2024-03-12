@@ -13,12 +13,11 @@
 #include "log.h"
 
 TCPServer::TCPServer(uint16_t port) : listenPort_(port) {
-    epoll_ = new EPoll(8, std::bind(&TCPServer::onReadableEvent, this, std::placeholders::_1));
+
 }
 
 TCPServer::~TCPServer() {
     LOGD("~TCPServer");
-    delete epoll_;
 }
 
 bool TCPServer::initListenSocket() {
@@ -44,6 +43,7 @@ bool TCPServer::initListenSocket() {
 
 bool TCPServer::start() {
     LOGD("start...");
+    epoll_ = new EPoll(8, std::bind(&TCPServer::onReadableEvent, this, std::placeholders::_1));
     initListenSocket();
     epoll_->insertFd(listenSocket_);
     LOGD("listening %d ...", listenPort_);
@@ -52,6 +52,8 @@ bool TCPServer::start() {
 
 bool TCPServer::stop() {
     LOGD("stop...");
+    delete epoll_;
+    epoll_ = nullptr;
     shutdown(listenSocket_, SHUT_RDWR);
     close(listenSocket_);
 
@@ -70,7 +72,9 @@ void TCPServer::onReadableEvent(int fd) {
             auto len = onReadAvailable(connection);
             if (0 == len) {
                 onDisconnect(connection);
-                epoll_->removeFd(connection->getSocket());
+                if (nullptr != epoll_) {
+                    epoll_->removeFd(connection->getSocket());
+                }
                 clients_.erase(it);
                 //LOGD("clients size = %zu", clients_.size());
             }
@@ -93,7 +97,9 @@ void TCPServer::onAccept() {
     auto connection = std::make_shared<TCPConnection>(clientSocket, inet_ntoa(clientAddr.sin_addr), listenPort_);
     connection->setNonblock();
     clients_[clientSocket] = connection;
-    epoll_->insertFd(clientSocket);
+    if (nullptr != epoll_) {
+        epoll_->insertFd(clientSocket);
+    }
     onConnect(connection);
     //LOGD("clients size = %zu", clients_.size());
 }
