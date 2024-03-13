@@ -4,7 +4,6 @@
 
 #include <cstdio>
 #include <cstring>
-#include <cerrno>
 #include <csignal>
 #include <arpa/inet.h>
 #include <sys/socket.h>

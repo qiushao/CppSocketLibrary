@@ -7,7 +7,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <thread>
 #include <atomic>
 #include <map>
 #include "TCPConnection.h"

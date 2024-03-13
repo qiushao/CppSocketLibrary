@@ -3,3 +3,9 @@ target_link_libraries(TCPEchoServer CppSocket)
 
 add_executable(TCPEchoClient TCPEchoClient.cpp)
 target_link_libraries(TCPEchoClient CppSocket)
+
+add_executable(UDPEchoServer UDPEchoServer.cpp)
+target_link_libraries(UDPEchoServer CppSocket)
+
+add_executable(UDPEchoClient UDPEchoClient.cpp)
+target_link_libraries(UDPEchoClient CppSocket)
