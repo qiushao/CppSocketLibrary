@@ -3,6 +3,8 @@
 //
 
 #include "UDPServer.h"
+
+#include <utility>
 #include "EPoll.h"
 #include "UDPSocket.h"
 #include "log.h"
@@ -36,7 +38,10 @@ bool UDPServer::stopUDPServer() {
 }
 
 void UDPServer::onReadableEvent(int fd) {
-    auto ret = onReadAvailable(udpSocket_);
+    if (nullptr == onReadCallback_) {
+        return;
+    }
+    auto ret = onReadCallback_(udpSocket_);
     if (0 == ret) {
         stopUDPServer();
         onSocketError();
@@ -49,4 +54,8 @@ int UDPServer::getSocket() {
 
 uint16_t UDPServer::getPort() {
     return udpSocket_->getPort();
+}
+
+void UDPServer::setOnReadCallback(std::function<ssize_t (const std::shared_ptr<UDPSocket> &udpSocket)> onReadCallback) {
+    onReadCallback_ = std::move(onReadCallback);
 }

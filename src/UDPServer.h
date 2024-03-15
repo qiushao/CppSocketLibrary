@@ -12,6 +12,7 @@
 #include <map>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <functional>
 #include "UDPSocket.h"
 
 class EPoll;
@@ -21,6 +22,7 @@ public:
     explicit UDPServer(uint16_t port);
     virtual ~UDPServer();
 
+    void setOnReadCallback(std::function<ssize_t (const std::shared_ptr<UDPSocket> &udpSocket)> onReadCallback);
     virtual bool startUDPServer();
     virtual bool stopUDPServer();
 
@@ -29,8 +31,6 @@ public:
 
 protected:
     virtual void onSocketError() {}
-    // 需要返回读取到的数据长度，用于判断是否有网络异常
-    virtual ssize_t onReadAvailable(const std::shared_ptr<UDPSocket> &udpSocket) = 0;
 
 private:
     bool initSocket();
@@ -38,8 +38,10 @@ private:
 
 private:
     EPoll *epoll_ = nullptr;
-    uint16_t port_;
-    std::shared_ptr<UDPSocket> udpSocket_;
+    uint16_t port_ = 0;
+    std::shared_ptr<UDPSocket> udpSocket_ = nullptr;
+    // 需要返回读取到的数据长度，用于判断是否有网络异常
+    std::function<ssize_t (const std::shared_ptr<UDPSocket> &udpSocket)> onReadCallback_ = nullptr;
 };
 
 
