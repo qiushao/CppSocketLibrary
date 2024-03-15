@@ -3,6 +3,7 @@
 //
 
 #include <functional>
+#include <utility>
 #include "UDPClient.h"
 #include "EPoll.h"
 
@@ -24,7 +25,10 @@ UDPClient::~UDPClient() {
 }
 
 void UDPClient::onReadableEvent(int fd) {
-    auto ret = onReadAvailable(udpSocket_);
+    if (nullptr == onReadCallback_) {
+        return;
+    }
+    auto ret = onReadCallback_(this);
     if (0 == ret) {
         onSocketError();
     }
@@ -41,4 +45,8 @@ ssize_t UDPClient::writeData(const void *data, size_t len) {
 
 ssize_t UDPClient::writeDataWaitAll(const void *data, size_t len) {
     return udpSocket_->writeDataWaitAll(data, len, peerSocketAddr_);
+}
+
+void UDPClient::setOnReadCallback(std::function<ssize_t(UDPClient *)> onReadCallback) {
+    onReadCallback_ = std::move(onReadCallback);
 }

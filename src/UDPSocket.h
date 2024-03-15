@@ -17,15 +17,14 @@ public:
     explicit UDPSocket();
     virtual ~UDPSocket();
 
-
     bool bind(uint16_t port);
-    int getSocket();
-    uint16_t getPort();
-    bool setNonblock();
-    ssize_t readData(uint8_t *data, size_t len, struct sockaddr_in *peerInfo);
+    int getSocket() const;
+    uint16_t getPort() const;
+    bool setNonblock() const;
 
-    ssize_t writeData(const void *data, size_t len, const struct sockaddr_in &peerInfo);
-    ssize_t writeDataWaitAll(const void *data, size_t len, const struct sockaddr_in &peerInfo);
+    ssize_t readData(uint8_t *data, size_t len, struct sockaddr_in *peerInfo) const;
+    ssize_t writeData(const void *data, size_t len, const struct sockaddr_in &peerInfo) const;
+    ssize_t writeDataWaitAll(const void *data, size_t len, const struct sockaddr_in &peerInfo) const;
 
 private:
     void initSocket();

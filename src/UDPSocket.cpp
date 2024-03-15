@@ -25,73 +25,15 @@ void UDPSocket::initSocket() {
     setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, &optValue, sizeof(optValue));
 }
 
-ssize_t UDPSocket::readData(uint8_t *data, size_t len, struct sockaddr_in *peerInfo) {
-    socklen_t socketLen = sizeof(struct sockaddr_in);
-    ssize_t ret = recvfrom(socket_, data, len, 0, (struct sockaddr *) peerInfo, &socketLen);
-
-    if (ret < 0) {
-        switch (errno) {
-            case EAGAIN: // try again later
-            case EINTR: // interrupted by signal, try again
-                LOGD("should try again");
-                return ret;
-            case EFAULT:
-            case EINVAL:
-            case ENOMEM:
-            case ENOTSOCK:
-            case ECONNRESET:
-                // handle the error and possibly terminate or log
-                LOGE("recvfrom failed:%d:%s", errno, strerror(errno));
-                return 0;
-            default:
-                // an unexpected error
-                LOGE("recvfrom failed unknown error:%d:%s", errno, strerror(errno));
-                return 0;
-        }
-    }
-    return ret;
-}
-
-ssize_t UDPSocket::writeData(const void *data, size_t len, const struct sockaddr_in &peerInfo) {
-    return sendto(socket_, data, len, 0, (struct sockaddr *) &peerInfo, sizeof(struct sockaddr_in));
-}
-
-ssize_t UDPSocket::writeDataWaitAll(const void *data, size_t len, const struct sockaddr_in &peerInfo) {
-    while (true) {
-        auto ret = sendto(socket_, data, len, 0, (struct sockaddr *) &peerInfo, sizeof(struct sockaddr_in));
-        if (ret < 0) {
-            switch (errno) {
-                case EAGAIN: // try again later
-                case EINTR: // interrupted by signal, try again
-                    LOGD("try again");
-                    continue;
-                case EFAULT:
-                case EINVAL:
-                case ENOMEM:
-                case ENOTSOCK:
-                case ECONNRESET:
-                    // handle the error and possibly terminate or log
-                    LOGE("recvfrom failed:%d:%s", errno, strerror(errno));
-                    return 0;
-                default:
-                    // an unexpected error
-                    LOGE("recvfrom failed unknown error:%d:%s", errno, strerror(errno));
-                    return 0;
-            }
-        }
-        return ret;
-    }
-}
-
-int UDPSocket::getSocket() {
+int UDPSocket::getSocket() const {
     return socket_;
 }
 
-uint16_t UDPSocket::getPort() {
+uint16_t UDPSocket::getPort() const {
     return port_;
 }
 
-bool UDPSocket::setNonblock() {
+bool UDPSocket::setNonblock() const {
     int flags;
     flags = fcntl(socket_, F_GETFL, 0);
     if (flags == -1) {
@@ -129,4 +71,62 @@ bool UDPSocket::bind(uint16_t port) {
     }
 
     return true;
+}
+
+ssize_t UDPSocket::readData(uint8_t *data, size_t len, struct sockaddr_in *peerInfo) const {
+    socklen_t socketLen = sizeof(struct sockaddr_in);
+    ssize_t ret = recvfrom(socket_, data, len, 0, (struct sockaddr *) peerInfo, &socketLen);
+
+    if (ret < 0) {
+        switch (errno) {
+            case EAGAIN: // try again later
+            case EINTR: // interrupted by signal, try again
+                LOGD("should try again");
+                return ret;
+            case EFAULT:
+            case EINVAL:
+            case ENOMEM:
+            case ENOTSOCK:
+            case ECONNRESET:
+                // handle the error and possibly terminate or log
+                LOGE("recvfrom failed:%d:%s", errno, strerror(errno));
+                return 0;
+            default:
+                // an unexpected error
+                LOGE("recvfrom failed unknown error:%d:%s", errno, strerror(errno));
+                return 0;
+        }
+    }
+    return ret;
+}
+
+ssize_t UDPSocket::writeData(const void *data, size_t len, const struct sockaddr_in &peerInfo) const {
+    return sendto(socket_, data, len, 0, (struct sockaddr *) &peerInfo, sizeof(struct sockaddr_in));
+}
+
+ssize_t UDPSocket::writeDataWaitAll(const void *data, size_t len, const struct sockaddr_in &peerInfo) const {
+    while (true) {
+        auto ret = sendto(socket_, data, len, 0, (struct sockaddr *) &peerInfo, sizeof(struct sockaddr_in));
+        if (ret < 0) {
+            switch (errno) {
+                case EAGAIN: // try again later
+                case EINTR: // interrupted by signal, try again
+                    LOGD("try again");
+                    continue;
+                case EFAULT:
+                case EINVAL:
+                case ENOMEM:
+                case ENOTSOCK:
+                case ECONNRESET:
+                    // handle the error and possibly terminate or log
+                    LOGE("recvfrom failed:%d:%s", errno, strerror(errno));
+                    return 0;
+                default:
+                    // an unexpected error
+                    LOGE("recvfrom failed unknown error:%d:%s", errno, strerror(errno));
+                    return 0;
+            }
+        }
+        return ret;
+    }
 }
