@@ -2,7 +2,7 @@
 // Created by qiushao on 2/6/24.
 //
 
-#include "TCPConnection.h"
+#include "TCPSocket.h"
 #include <unistd.h>
 #include <thread>
 #include <cstring>
@@ -11,29 +11,29 @@
 #include <sys/socket.h>
 #include "log.h"
 
-TCPConnection::TCPConnection(int socket, std::string peerIp, uint16_t port)
+TCPSocket::TCPSocket(int socket, std::string peerIp, uint16_t port)
         : socket_(socket), peerIp_(std::move(peerIp)), port_(port) {
 }
 
-TCPConnection::~TCPConnection() {
+TCPSocket::~TCPSocket() {
     //LOGD("close connection");
     shutdown(socket_, SHUT_RDWR);
     close(socket_);
 }
 
-std::string TCPConnection::getPeerIP() {
+std::string TCPSocket::getPeerIP() {
     return peerIp_;
 }
 
-uint16_t TCPConnection::getPort() const {
+uint16_t TCPSocket::getPort() const {
     return port_;
 }
 
-int TCPConnection::getSocket() const {
+int TCPSocket::getSocket() const {
     return socket_;
 }
 
-bool TCPConnection::setNonblock() const {
+bool TCPSocket::setNonblock() const {
     int flags;
     flags = fcntl(socket_, F_GETFL, 0);
     if (flags == -1) {
@@ -49,7 +49,7 @@ bool TCPConnection::setNonblock() const {
     return true;
 }
 
-ssize_t TCPConnection::readDataWaitAll(uint8_t *data, size_t len) {
+ssize_t TCPSocket::readDataWaitAll(uint8_t *data, size_t len) {
     if (broken_) {
         LOGE("connection is broken, can't read anymore");
         return 0;
@@ -86,7 +86,7 @@ ssize_t TCPConnection::readDataWaitAll(uint8_t *data, size_t len) {
     return len - nLeft;
 }
 
-ssize_t TCPConnection::writeDataWaitAll(const void *data, size_t len) {
+ssize_t TCPSocket::writeDataWaitAll(const void *data, size_t len) {
     if (broken_) {
         LOGE("connection is broken, can't write anymore");
         return 0;
@@ -122,7 +122,7 @@ ssize_t TCPConnection::writeDataWaitAll(const void *data, size_t len) {
     return nWritten;
 }
 
-ssize_t TCPConnection::writeData(const void *data, size_t len) {
+ssize_t TCPSocket::writeData(const void *data, size_t len) {
     if (broken_) {
         LOGE("connection is broken, can't write anymore");
         return 0;
@@ -150,7 +150,7 @@ ssize_t TCPConnection::writeData(const void *data, size_t len) {
     }
 }
 
-ssize_t TCPConnection::readData(uint8_t *data, size_t len) {
+ssize_t TCPSocket::readData(uint8_t *data, size_t len) {
     if (broken_) {
         LOGE("connection is broken, can't read anymore");
         return 0;

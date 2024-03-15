@@ -1,2 +1,2 @@
-add_library(CppSocket SHARED TCPConnector.cpp TCPServer.cpp TCPConnection.cpp UDPServer.cpp UDPClient.cpp UDPSocket.cpp EPoll.cpp log.cpp init.cpp)
+add_library(CppSocket SHARED TCPConnector.cpp TCPServer.cpp TCPSocket.cpp UDPServer.cpp UDPClient.cpp UDPSocket.cpp EPoll.cpp log.cpp init.cpp)
 target_include_directories(CppSocket PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

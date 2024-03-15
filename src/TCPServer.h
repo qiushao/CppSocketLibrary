@@ -9,7 +9,7 @@
 #include <memory>
 #include <atomic>
 #include <map>
-#include "TCPConnection.h"
+#include "TCPSocket.h"
 
 class EPoll;
 
@@ -22,10 +22,10 @@ public:
     virtual bool stop();
 
 protected:
-    virtual void onConnect(const std::shared_ptr<TCPConnection> &connection) {}
-    virtual void onDisconnect(const std::shared_ptr<TCPConnection> &connection) {}
+    virtual void onConnect(const std::shared_ptr<TCPSocket> &connection) {}
+    virtual void onDisconnect(const std::shared_ptr<TCPSocket> &connection) {}
     // 需要返回读取到的数据长度，用于判断是否 disconnect 了
-    virtual ssize_t onReadAvailable(const std::shared_ptr<TCPConnection> &connection) = 0;
+    virtual ssize_t onReadAvailable(const std::shared_ptr<TCPSocket> &connection) = 0;
 
 private:
     bool initListenSocket();
@@ -36,7 +36,7 @@ private:
     int listenPort_ = 0;
     int listenSocket_ = 0;
     EPoll *epoll_ = nullptr;
-    std::map<int, std::shared_ptr<TCPConnection>> clients_;
+    std::map<int, std::shared_ptr<TCPSocket>> clients_;
 };
 
 

@@ -6,11 +6,11 @@
 #define CPPSOCKETLIBRARY_TCPCONNECTOR_H
 
 #include <string>
-#include "TCPConnection.h"
+#include "TCPSocket.h"
 
 class TCPConnector {
 public:
-    static std::shared_ptr<TCPConnection> connect(const std::string& serverIp, uint16_t port);
+    static std::shared_ptr<TCPSocket> connect(const std::string& serverIp, uint16_t port);
 };
 
 

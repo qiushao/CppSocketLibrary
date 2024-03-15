@@ -8,7 +8,7 @@
 #include "EPoll.h"
 #include "log.h"
 
-static std::shared_ptr<TCPConnection> g_connection;
+static std::shared_ptr<TCPSocket> g_connection;
 static EPoll *g_epoll;
 static void onReceive(int fd) {
     char buffer[256];

@@ -93,7 +93,7 @@ void TCPServer::onAccept() {
         return;
     }
 
-    auto connection = std::make_shared<TCPConnection>(clientSocket, inet_ntoa(clientAddr.sin_addr), listenPort_);
+    auto connection = std::make_shared<TCPSocket>(clientSocket, inet_ntoa(clientAddr.sin_addr), listenPort_);
     connection->setNonblock();
     clients_[clientSocket] = connection;
     if (nullptr != epoll_) {

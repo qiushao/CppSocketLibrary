@@ -8,9 +8,9 @@
 #include "TCPConnector.h"
 #include "log.h"
 
-std::shared_ptr<TCPConnection> TCPConnector::connect(const std::string& serverIp, uint16_t port) {
+std::shared_ptr<TCPSocket> TCPConnector::connect(const std::string& serverIp, uint16_t port) {
     int socket_ = 0;
-    std::shared_ptr<TCPConnection> connection_ = nullptr;
+    std::shared_ptr<TCPSocket> connection_ = nullptr;
     if ((socket_ = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         LOGE("create socket error:%s", strerror(errno));
         return connection_;
@@ -30,6 +30,6 @@ std::shared_ptr<TCPConnection> TCPConnector::connect(const std::string& serverIp
         return connection_;
     }
 
-    connection_ = std::make_shared<TCPConnection>(socket_, serverIp, port);
+    connection_ = std::make_shared<TCPSocket>(socket_, serverIp, port);
     return connection_;
 }

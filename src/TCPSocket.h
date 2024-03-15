@@ -2,17 +2,17 @@
 // Created by qiushao on 2/6/24.
 //
 
-#ifndef CPPSOCKETLIBRARY_TCPCONNECTION_H
-#define CPPSOCKETLIBRARY_TCPCONNECTION_H
+#ifndef CPPSOCKETLIBRARY_TCPSOCKET_H
+#define CPPSOCKETLIBRARY_TCPSOCKET_H
 
 #include <string>
 #include <functional>
 #include <memory>
 
-class TCPConnection {
+class TCPSocket {
 public:
-    TCPConnection(int socket, std::string peerIp, uint16_t port);
-    virtual ~TCPConnection();
+    TCPSocket(int socket, std::string peerIp, uint16_t port);
+    virtual ~TCPSocket();
 
     std::string getPeerIP();
     uint16_t getPort() const;
@@ -32,4 +32,4 @@ private:
 };
 
 
-#endif //CPPSOCKETLIBRARY_TCPCONNECTION_H
+#endif //CPPSOCKETLIBRARY_TCPSOCKET_H

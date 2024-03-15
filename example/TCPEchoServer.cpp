@@ -18,15 +18,15 @@ public:
     }
 
 protected:
-    void onConnect(const std::shared_ptr<TCPConnection> &connection) override {
+    void onConnect(const std::shared_ptr<TCPSocket> &connection) override {
         LOGD("onConnect peer(%s:%d)", connection->getPeerIP().c_str(), connection->getPort());
     }
 
-    void onDisconnect(const std::shared_ptr<TCPConnection> &connection) override {
+    void onDisconnect(const std::shared_ptr<TCPSocket> &connection) override {
         LOGD("onDisconnect peer(%s:%d)", connection->getPeerIP().c_str(), connection->getPort());
     }
 
-    ssize_t onReadAvailable(const std::shared_ptr<TCPConnection> &connection) override {
+    ssize_t onReadAvailable(const std::shared_ptr<TCPSocket> &connection) override {
         char buffer[256];
         memset(buffer, 0, 256);
         auto len = connection->readData(reinterpret_cast<uint8_t *>(buffer), 256);
