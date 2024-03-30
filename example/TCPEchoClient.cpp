@@ -4,37 +4,34 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-#include "TCPConnector.h"
 #include "EPoll.h"
 #include "log.h"
+#include "TCPClient.h"
 
-static std::shared_ptr<TCPSocket> g_connection;
-static EPoll *g_epoll;
-static void onReceive(int fd) {
-    char buffer[256];
-    memset(buffer, 0, 256);
-    auto nRead = g_connection->readData(reinterpret_cast<uint8_t *>(buffer), 256);
-    if (nRead == 0) {
-        LOGE("nRead == 0, disconnect");
-        g_epoll->removeFd(g_connection->getSocket());
-        return;
+constexpr uint16_t BUFFER_SIZE = 4096;
+uint8_t buffer_[BUFFER_SIZE];
+ssize_t onReadAvailable(TCPClient *client) {
+    memset(buffer_, 0, BUFFER_SIZE);
+    auto nRead = client->readData(buffer_, BUFFER_SIZE);
+    if (nRead > 0) {
+        LOGD("tcp server say:%s", buffer_);
+    } else if (nRead == 0) {
+        LOGD("readData error, exit client");
+        exit(-1);
     }
-    LOGD("server say: %s", buffer);
 }
 
 int main() {
     const char *serverIP = "127.0.0.1";
     uint16_t serverPort = 10086;
-    g_connection = TCPConnector::connect(serverIP, serverPort);
-    if (nullptr == g_connection) {
+    TCPClient client(serverIP, serverPort);
+    if (!client.connect()) {
         LOGE("connect to server(%s:%d) failed", serverIP, serverPort);
         return -1;
     }
 
     LOGD("connect to server(%s:%d) success", serverIP, serverPort);
-    g_connection->setNonblock();
-    g_epoll = new EPoll(8, onReceive);
-    g_epoll->insertFd(g_connection->getSocket());
+    client.setOnReadCallback(onReadAvailable);
 
     std::string line;
     while (true) {
@@ -42,7 +39,7 @@ int main() {
         if (line == "exit") {
             break;
         }
-        auto nWrite = g_connection->writeDataWaitAll(line.c_str(), line.length());
+        auto nWrite = client.writeDataWaitAll(line.c_str(), line.length());
         if (nWrite == 0) {
             LOGE("disconnect");
             break;
